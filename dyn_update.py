@@ -119,7 +119,7 @@ class DynUpdate:
     print('    -u, --username=NAME    username to use for http authentication')
     print('    -p, --password=PASS    password to use for http authentication')
     print('    --port=PORT            port to use to send get query to server (Default '+str(self._port)+')')
-    print('    --api=URL              url to send http parameters  (Default '+str(self._url)+')')
+    print('    --api=URL              url to which send http query parameters  (Default '+str(self._url)+')')
     print('    --help               display this help message')
     print('    --no-output          disable all output')
     print('    -v, --verbose        show more running messages')
