@@ -51,8 +51,8 @@ DYN_NIC='/nic/update'
 USER_AGENT="dyn_update/$VERSION"
 HTTP_GLOBAL_OPTS="--user-agent=$USER_AGENT"
 
-IS_VERBOSE=0
 IS_DEBUG=0
+IS_VERBOSE=0
 
 # remote server to which send dyn update string
 DYNDNS_SERVER='members.dyndns.org'
