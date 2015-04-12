@@ -51,7 +51,7 @@ class DynUpdate:
     """Constructor : Build an launcher for dynupdate
     """
     self._argv = None
-    
+
     # Network required
     self._username = ''
     self._password = ''
@@ -62,29 +62,29 @@ class DynUpdate:
     self._logger.setLevel('INFO')
     hdlr = logging.StreamHandler(sys.stdout)
     self._logger.addHandler(hdlr)
-    
+
     # DYNDNS protocol
     # for detail see https://help.dyn.com/remote-access-api/perform-update/
     self._fields = dict()
-    
+
     # Identify update type
     # "dyndns", "statdns"
     self._fields['system'] = 'dyndns'
-    
+
     # A comma separated list of host to update (max 20)
     self._fields['hostname'] = ''
-    
+
     # The IP address to set. 
     # If not set or incorrect the server will choose himself an IP
     self._fields['myip'] = ''
-    
+
     # Parameter enables or disables wildcards for this host.
     # Values : "ON","NOCHG","OFF"
     self._fields['wildcard'] = 'NOCHG'
-    
+
     # Specify an eMail eXchanger
     self._fields['mx'] = ''
-    
+
     # Requests the MX in the previous parameter to be set up as a backup MX
     # by listing the host itself as an MX with a lower preference value.
     # Values : "ON","NOCHG","OFF"
@@ -94,7 +94,7 @@ class DynUpdate:
     # "YES" turn on offline redirect for host
     # "NOCHG" no make change
     self._fields['offline'] = 'NOCHG'
-    
+
     # No already use
     self._fields['url'] = ''
 
@@ -136,7 +136,7 @@ class DynUpdate:
   def _parseCmdLineOptions(self, options_list):
     """Parse input main options, and apply rules
     
-    @param(dict) options_list : array of option key => value
+    @param[dict] options_list : array of option key => value
     """
     for opt in options_list:
       if opt[0] in ['-a', '--address']:
@@ -153,13 +153,13 @@ class DynUpdate:
         self._port = int(opt[1])
       if opt[0] == '--api':
         self._url = opt[1]
-      
+
       if opt[0] in ['-v', '--verbose']:
         self._logger.setLevel('DEBUG')
       if opt[0] == '--no-output':
         # disable logging
         logging.disable(logging.CRITICAL+1)
-        
+
       if opt[0] == '--backmx':
         self._fields['backmx'] = 'YES'
       if opt[0] == '--no-backmx':
@@ -174,7 +174,7 @@ class DynUpdate:
         self._fields['wildcard'] = 'NO'
       if opt[0] == '--url':
         self._fields['url'] = opt[1]
-        
+
       if opt[0] == '--help':
         self.showUsage()
         sys.exit(0)
@@ -185,7 +185,7 @@ class DynUpdate:
   def start(self, argv):
     """Entry point of the launcher
     
-    @param(dict) argv : array of shell options given by main function
+    @param[dict] argv : array of shell options given by main function
     """
     # save the arg vector
     self._argv = argv
@@ -215,7 +215,7 @@ class DynUpdate:
       self._logger.error('Problem during parameters interpretation :')
       self._logger.error('   '+str(e))
       return False
-    
+
     try:
       for val in [self._server,
                   self._fields['myip'],
@@ -232,37 +232,40 @@ class DynUpdate:
   def query(self):
     """Forge and send the get query
     
-    @return(boolean) : True if query success
+    @return[boolean] : True if query success
                         False otherwise
     """
     # bulding url
+    # remove trailing slash
     url = '/'+self._url.strip('/')+'?hostname='+self._fields['hostname']
     for param in self._fields:
       if self._fields[param] and param not in ['hostname']:
         url += '&'+param+'='+self._fields[param]
     self._logger.debug('debug: url set to : "'+url+'"')
     # /bulding url
-    
+
     h = HTTPConnection(self._server, self._port, timeout = 1)
     self._logger.debug('debug: query to : '+self._server+':'+str(self._port))
     try:
+      # init the dict header
       headers = { 'User-Agent' : 'dyn_update/'+version }
-      
+
+      # handle authentification
       if self._username and self._password:
         self._logger.debug('debug: authentication enable')
+        # build the auth string
         auth_str = self._username+':'+self._password
+        # encode it as a base64 string to put in http header
         auth = b64encode(auth_str.encode()).decode("ascii")
+        # fill the header
         headers['Authorization'] = 'Basic '+auth
       else:
         self._logger.debug('debug: authentication disable')
-        
+
+      # exec the query
       h.request('GET', url, headers=headers)
       res = h.getresponse()
-      
-      # Use during developpement
-      #headers = res.getheaders()
-      #for head in headers:
-      #  print(head)
+
       self._logger.debug('debug: get status '+str(res.status)+' '+str(res.reason))
       self._logger.debug('debug: '+str(res.read()))
       if res.status == 401:
@@ -271,11 +274,11 @@ class DynUpdate:
       elif res.status == 200:
         self._logger.info('Success')
         return True
-      
+
     except Exception as e:
       self._logger.error('unable to reach the host '+str(e))
       return False
-    
+
 ##
 # Run launcher as the main program
 if __name__ == '__main__':
