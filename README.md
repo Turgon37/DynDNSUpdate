@@ -2,13 +2,15 @@
 
 A dynamic dns hostname updater client
 
+The recommanded version is python script
+
 ## Usage
 
 This tool is provided in several languages :
 
 ```bash
-  ./dyn_update.py  => python
-  ./dyn_update.sh  => bash
+  ./dyn-update.py  => python
+  ./dyn-update.sh  => bash
 ```
 
 Please use the --help statement on each script to learn how to use them

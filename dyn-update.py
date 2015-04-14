@@ -38,7 +38,7 @@ import re
 import sys
 
 # Global project declarations
-version = '1.0'
+version = '1.0.0'
 
 class DynUpdate:
   """An instance of a dyn client
@@ -50,136 +50,143 @@ class DynUpdate:
   def __init__(self):
     """Constructor : Build an launcher for dynupdate
     """
-    self._argv = None
-
     # Network required
-    self._username = ''
-    self._password = ''
-    self._server = ''
-    self._port = 80
-    self._url = '/nic/update'
-    self._logger = logging.getLogger('dynupdate'+version)
-    self._logger.setLevel('INFO')
+    self.username = ''
+    self.password = ''
+    self.server = ''
+    self.port = 80
+    self.url = '/nic/update'
+    self.__logger = logging.getLogger('dynupdate')
+    self.__logger.setLevel('INFO')
     hdlr = logging.StreamHandler(sys.stdout)
-    self._logger.addHandler(hdlr)
+    self.__logger.addHandler(hdlr)
 
     # DYNDNS protocol
     # for detail see https://help.dyn.com/remote-access-api/perform-update/
-    self._fields = dict()
+    self.__fields = dict()
 
     # Identify update type
     # "dyndns", "statdns"
-    self._fields['system'] = 'dyndns'
+    self.__fields['system'] = 'dyndns'
 
     # A comma separated list of host to update (max 20)
-    self._fields['hostname'] = ''
+    self.__fields['hostname'] = ''
 
     # The IP address to set. 
     # If not set or incorrect the server will choose himself an IP
-    self._fields['myip'] = ''
+    self.__fields['myip'] = ''
 
     # Parameter enables or disables wildcards for this host.
     # Values : "ON","NOCHG","OFF"
-    self._fields['wildcard'] = 'NOCHG'
+    self.__fields['wildcard'] = 'NOCHG'
 
     # Specify an eMail eXchanger
-    self._fields['mx'] = ''
+    self.__fields['mx'] = ''
 
     # Requests the MX in the previous parameter to be set up as a backup MX
     # by listing the host itself as an MX with a lower preference value.
     # Values : "ON","NOCHG","OFF"
-    self._fields['backmx'] = 'NOCHG'
+    self.__fields['backmx'] = 'NOCHG'
 
     # Set the hostname to offline mode
     # "YES" turn on offline redirect for host
     # "NOCHG" no make change
-    self._fields['offline'] = 'NOCHG'
+    self.__fields['offline'] = 'NOCHG'
 
     # No already use
-    self._fields['url'] = ''
+    self.__fields['url'] = ''
 
-  def showVersion(self):
-    """Shows the program version
+  def showVersion():
+    """Print the program version
     """
-    print("dyn update version v"+version)
+    print("netsav version v"+netsav.version)
 
   def showUsage(self):
     """Prints command line options
     """
-    print('Usage: '+self._argv[0]+' REQUIRED [OPTIONS...]')
-    print('')
-    print('Dyn update client v'+version)
-    print('Use DYNDNS protocol for updating a dynhost with a new ip address')
-    print('')
-    print('Required :')
-    print('    -a, --address=IP_ADDRESS   set the IP address to use for update')
-    print('    -h, --hostname=HOSTNAME    set the IP address to use for update')
-    print('    -s, --server=HOST|ADDR     set the dyndns server address that contains the zone to update')
-    print('Options :')
-    print('    -u, --username=NAME    username to use for http authentication')
-    print('    -p, --password=PASS    password to use for http authentication')
-    print('    --port=PORT            port to use to send get query to server (Default '+str(self._port)+')')
-    print('    --api=URL              url to which send http query parameters  (Default '+str(self._url)+')')
-    print('    --help               display this help message')
-    print('    --no-output          disable all output')
-    print('    -v, --verbose        show more running messages')
-    print('    -V, --version        print the version')
-    print('DynDNS protocol facilities :')
-    print('    --backmx       set backupmx option YES (Default: '+str(self._fields['backmx'])+')')
-    print('    --no-backmx    set backupmx option NO (Default: '+str(self._fields['backmx'])+')')
-    print('    --offline      set dyndns to offline mode (Default: '+str(self._fields['offline'])+')')
-    print('    --static       set static dns system (Default: '+str(self._fields['system'])+')')
-    print('    --wildcard     set wildcard ON (Default: '+str(self._fields['wildcard'])+')')
-    print('    --no-wildcard  set wildcard OFF (Default: '+str(self._fields['wildcard'])+')')
-    print('    --url=  set dyndns url feature')
+    print('Usage: '+sys.argv[0]+' REQUIRED [OPTIONS...]')
+    print("""
+Dyn update client v"""+version+"""
+Use DYNDNS protocol for updating a dynhost with a new ip address
+    
+Required :
+    -a, --address=IP_ADDRESS   set the IP address to use for update
+    -h, --hostname=HOSTNAME    set the IP address to use for update
+    -s, --server=HOST|ADDR     set the dyndns server address that contains the zone to update
+Options :
+    -u, --username=NAME    username to use for http authentication
+    -p, --password=PASS    password to use for http authentication
+    --port=PORT            port to use to send get query to server (Default """+str(self.port)+""")
+    --api=URL              url to which send http query parameters  (Default '"""+str(self.url)+"""')
+    --help               display this help message
+    --no-output          disable all output
+    -v, --verbose        show more running messages
+    -V, --version        print the version
+DynDNS protocol features :
+    --backmx       set backupmx option YES (Default: """+str(self.__fields['backmx'])+""")
+    --no-backmx    set backupmx option NO (Default: """+str(self.__fields['backmx'])+""")
+    --offline      set dyndns to offline mode (Default: """+str(self.__fields['offline'])+""")
+    --static       set static dns system (Default: """+str(self.__fields['system'])+""")
+    --wildcard     set wildcard ON (Default: """+str(self.__fields['wildcard'])+""")
+    --no-wildcard  set wildcard OFF (Default: """+str(self.__fields['wildcard'])+""")
+    --url=         set dyndns url feature
 
-  def _parseCmdLineOptions(self, options_list):
+Return code :
+    0 Success
+    1 Other errors during running
+    2 Bad argument
+    3 Missing required argument
+    10 Error during HTTP query
+    11 Authentification needed
+""")
+
+  def __parseCmdLineOptions(self, options_list):
     """Parse input main options, and apply rules
     
     @param[dict] options_list : array of option key => value
     """
     for opt in options_list:
       if opt[0] in ['-a', '--address']:
-        self._fields['myip'] = opt[1]
+        self.__fields['myip'] = opt[1]
       if opt[0] in ['-h', '--hostname']:
-        self._fields['hostname'] = opt[1]
+        self.__fields['hostname'] = opt[1]
       if opt[0] in ['-u', '--username']:
-        self._username = opt[1]
+        self.username = opt[1]
       if opt[0] in ['-p', '--password']:
-        self._password = opt[1]
+        self.password = opt[1]
       if opt[0] in ['-s', '--server']:
-        self._server = opt[1]
+        self.server = opt[1]
       if opt[0] == '--port':
-        self._port = int(opt[1])
+        self.port = int(opt[1])
       if opt[0] == '--api':
-        self._url = opt[1]
+        self.url = opt[1]
 
       if opt[0] in ['-v', '--verbose']:
-        self._logger.setLevel('DEBUG')
+        self.__logger.setLevel('DEBUG')
       if opt[0] == '--no-output':
         # disable logging
         logging.disable(logging.CRITICAL+1)
 
       if opt[0] == '--backmx':
-        self._fields['backmx'] = 'YES'
+        self.__fields['backmx'] = 'YES'
       if opt[0] == '--no-backmx':
-        self._fields['backmx'] = 'NO'
+        self.__fields['backmx'] = 'NO'
       if opt[0] == '--offline':
-        self._fields['offline'] = 'YES'
+        self.__fields['offline'] = 'YES'
       if opt[0] == '--static':
-        self._fields['system'] = 'statdns'
+        self.__fields['system'] = 'statdns'
       if opt[0] == '--wildcard':
-        self._fields['wildcard'] = 'YES'
+        self.__fields['wildcard'] = 'YES'
       if opt[0] == '--no-wildcard':
-        self._fields['wildcard'] = 'NO'
+        self.__fields['wildcard'] = 'NO'
       if opt[0] == '--url':
-        self._fields['url'] = opt[1]
+        self.__fields['url'] = opt[1]
 
       if opt[0] == '--help':
         self.showUsage()
         sys.exit(0)
       if opt[0] in ['-V', '--version']:
-        self.showVersion()
+        DynUpdate.showVersion()
         sys.exit(0)
 
   def start(self, argv):
@@ -187,10 +194,7 @@ class DynUpdate:
     
     @param[dict] argv : array of shell options given by main function
     """
-    # save the arg vector
-    self._argv = argv
-
-    # read the only allowed command line options
+    # read the only allowed command line options  
     try:
       short_opts = 'a:h:u:p:s:vV'
       long_opts = ['address=',
@@ -205,85 +209,86 @@ class DynUpdate:
                   'wildcard', 'no-wildcard', 'url=',
                   'help', 'version']
       options_list, args = getopt.getopt(argv[1:], short_opts, long_opts)
-      self._parseCmdLineOptions(options_list)
     except getopt.GetoptError as e:
-      self._logger.error(e)
-      self._logger.error('')
+      self.__logger.error(e)
+      self.__logger.error('')
       self.showUsage()
-      return False
+      return 2
     except Exception as e:
-      self._logger.error('Problem during parameters interpretation :')
-      self._logger.error('   '+str(e))
-      return False
+      self.__logger.error('Problem during parameters interpretation :')
+      self.__logger.error('   '+str(e))
+      return 1
 
+    self.__parseCmdLineOptions(options_list)
+    
     try:
-      for val in [self._server,
-                  self._fields['myip'],
-                  self._fields['hostname'],
+      for val in [self.server,
+                  self.__fields['myip'],
+                  self.__fields['hostname'],
                   ]:
         if not val:
-          raise Exception('missing a required argument use --help')
-      self._logger.debug('debug: run with field '+str(self._fields))
+          self.__logger.error('missing a required argument use --help')
+          return 3
+      self.__logger.debug('debug: config fields '+str(self.__fields))
       return self.query()
     except Exception as e:
-      self._logger.error(e)
-      return False
+      self.__logger.error(e)
+      return 1
 
   def query(self):
-    """Forge and send the get query
+    """Forge and send the HTTP GET query
     
     @return[boolean] : True if query success
-                        False otherwise
+                      False otherwise
     """
     # bulding url
     # remove trailing slash
-    url = '/'+self._url.strip('/')+'?hostname='+self._fields['hostname']
-    for param in self._fields:
-      if self._fields[param] and param not in ['hostname']:
-        url += '&'+param+'='+self._fields[param]
-    self._logger.debug('debug: url set to : "'+url+'"')
+    url = '/'+self.url.strip('/')+'?hostname='+self.__fields['hostname']
+    for param in self.__fields:
+      if self.__fields[param] and param not in ['hostname']:
+        url += '&'+param+'='+self.__fields[param]
+    self.__logger.debug('debug: url set to : "'+url+'"')
     # /bulding url
 
-    h = HTTPConnection(self._server, self._port, timeout = 1)
-    self._logger.debug('debug: query to : '+self._server+':'+str(self._port))
+    # instanciate the connection
+    h = HTTPConnection(self.server, self.port, timeout = 2)
+    self.__logger.debug('debug: query to : '+self.server+':'+str(self.port))
+    
+    # init the dict header
+    headers = { 'User-Agent' : 'dyn-update/'+version }
+
+    # handle authentification
+    if self.username and self.password:
+      self.__logger.debug('debug: authentication enable')
+      # build the auth string
+      auth_str = self.username+':'+self.password
+      # encode it as a base64 string to put in http header
+      auth = b64encode(auth_str.encode()).decode("ascii")
+      # fill the header
+      headers['Authorization'] = 'Basic '+auth
+    else:
+      self.__logger.debug('debug: authentication disable')
+
     try:
-      # init the dict header
-      headers = { 'User-Agent' : 'dyn_update/'+version }
-
-      # handle authentification
-      if self._username and self._password:
-        self._logger.debug('debug: authentication enable')
-        # build the auth string
-        auth_str = self._username+':'+self._password
-        # encode it as a base64 string to put in http header
-        auth = b64encode(auth_str.encode()).decode("ascii")
-        # fill the header
-        headers['Authorization'] = 'Basic '+auth
-      else:
-        self._logger.debug('debug: authentication disable')
-
       # exec the query
       h.request('GET', url, headers=headers)
       res = h.getresponse()
-
-      self._logger.debug('debug: get status '+str(res.status)+' '+str(res.reason))
-      self._logger.debug('debug: '+str(res.read()))
-      if res.status == 401:
-        self._logger.error('The server require a authentification')
-        return False
-      elif res.status == 200:
-        self._logger.info('Success')
-        return True
-
     except Exception as e:
-      self._logger.error('unable to reach the host '+str(e))
-      return False
+      self.__logger.error('error during http query '+str(e))
+      return 10
+
+    self.__logger.debug('debug: get status '+str(res.status)+' '+str(res.reason))
+    self.__logger.debug('debug: '+str(res.read()))
+    if res.status == 401:
+      self.__logger.error('the server require an authentification')
+      return 11
+    elif res.status == 200:
+      self.__logger.info('Success')
+      return 0
+
 
 ##
 # Run launcher as the main program
 if __name__ == '__main__':
-  instance = DynUpdate();
-  if instance.start(sys.argv):
-    sys.exit(0)
-  else:
-    sys.exit(-1)
+  launcher = DynUpdate();
+  sys.exit(launcher.start(sys.argv))
