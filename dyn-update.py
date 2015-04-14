@@ -38,7 +38,7 @@ import re
 import sys
 
 # Global project declarations
-version = '1.0.0'
+version = '1.0.1'
 
 class DynUpdate:
   """An instance of a dyn client
