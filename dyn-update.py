@@ -278,7 +278,7 @@ Return code :
       return 10
 
     self.__logger.debug('debug: get status '+str(res.status)+' '+str(res.reason))
-    self.__logger.debug('debug: '+str(res.read()))
+    self.__logger.debug('debug: '+res.read().decode())
     if res.status == 401:
       self.__logger.error('the server require an authentification')
       return 11
