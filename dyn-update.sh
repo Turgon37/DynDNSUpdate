@@ -143,7 +143,7 @@ function _echo() {
 # @param[string] : the msg to write in stderr
 function _error() {
   if [[ $IS_VERBOSE -eq 1 ]]; then
-    echo -e "Error : $@" 1>&2
+    echo -e "Error : $*" 1>&2
   fi
 }
 
@@ -151,14 +151,14 @@ function _error() {
 # @param[string] : the msg to write in stdout
 function _debug() {
   if [[ $IS_DEBUG -eq 1 ]]; then
-    echo -e "debug: $@"
+    echo -e "debug: $*"
   fi
 }
 
 # Print a msg to stderr and quit
 # param[in](string) : the msg to write in stderr
 function _errorq() {
-  echo "$0: $@" 1>&2
+  echo "$0: $*" 1>&2
   exit 2
 }
 
@@ -242,15 +242,15 @@ function main() {
   ##PARSING ARGUMENTS
   #number of needed arguments
   local MAIN_REQUIRED_ARGUMENTS=3
-  for i in `seq $(($#+1))`; do
+  for i in $(seq $(($#+1))); do
     #catch main arguments
     case $1 in
       -a) shift; MYIP="$1";;
-      --address=*) MYIP=`echo $1 | cut -d '=' -f 2-`;;
+      --address=*) MYIP=$(echo "$1" | cut -d '=' -f 2-);;
       -b|--backupmx) IF_BACKMX=1;;
       -!b|--no-backupmx) IF_BACKMX=-1;;
       -d) shift; DYNDNS_SERVER="$1";;
-      --destination=*) DYNDNS_SERVER=`echo $1 | cut -d '=' -f 2-`;;
+      --destination=*) DYNDNS_SERVER=$(echo "$1" | cut -d '=' -f 2-);;
       -h|--help) _usage; exit 0;;
       -o|--offline) IF_OFFLINE=1;;
       -s|--static) IF_SYSTEM_STATIC=1;;
@@ -291,8 +291,8 @@ function main() {
   _debug "set username to $DYNDNS_USERNAME"
   if [[ $IS_DEBUG -eq 1 ]]; then
     local password_string=
-    for i in `seq ${#DYNDNS_PASSWORD}`; do
-      password_string=`echo -n "$password_string*"`
+    for i in $(seq ${#DYNDNS_PASSWORD}); do
+      password_string=$(echo -n "$password_string*")
     done
   fi
   _debug "set password to $password_string"
