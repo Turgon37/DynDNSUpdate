@@ -9,8 +9,8 @@ The recommanded version is python script
 This tool is provided in several languages :
 
 ```bash
-  ./dyn-update.py  => python
-  ./dyn-update.sh  => bash
+  ./dynupdate.py  => python
+  ./dynupdate.sh  => bash
 ```
 
 Please use the --help statement on each script to learn how to use them
