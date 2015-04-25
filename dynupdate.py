@@ -35,6 +35,7 @@ import getopt
 from http.client import HTTPConnection
 import logging
 import re
+import socket
 import sys
 
 # Global project declarations
@@ -298,6 +299,9 @@ Return code :
       conn.close()
     except socket.gaierror as e:
       self.__logger.debug('unable to resolve hostname ' + str(e))
+      return 10
+    except socket.timeout as e:
+      self.__logger.debug('host unreachable' + str(e))
       return 10
     except socket.error as e:
       self.__logger.debug('unable to connect to host ' + str(e))
