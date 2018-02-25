@@ -1,17 +1,17 @@
 # DynUpdate - DynUpdate Client
 
-A dynamic dns hostname updater client
+[![Build Status](https://travis-ci.org/Turgon37/DynDNSUpdate.svg?branch=master)](https://travis-ci.org/Turgon37/DynDNSUpdate)
+[![codecov](https://codecov.io/gh/Turgon37/DynDNSUpdate/branch/master/graph/badge.svg)](https://codecov.io/gh/Turgon37/DynDNSUpdate)
 
-The recommanded version is python script
+
+A client script for DynDNS service.
+
+The recommanded version is python script, because the bash script is still available only for history purposes, it is not tested anymore.
 
 ## Usage
 
-This tool is provided in several languages :
-
 ```bash
-  ./dynupdate.py  => python
-  ./dynupdate.sh  => bash
-```
+./dyndnsupdate.py --dyn-server https://www.api.com --dyn-hostname hostname.domain.com -u login -p pass ```
 
 Please use the --help statement on each script to learn how to use them
 
@@ -19,8 +19,8 @@ Please use the --help statement on each script to learn how to use them
 
 Just put these in a folder and run from cmd line
 
-##### Requires:
+### Requires:
   - python version
-    * python >= 3.2
+    * python >= 3.4
   - bash version
     * wget
