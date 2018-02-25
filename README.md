@@ -11,7 +11,8 @@ The recommanded version is python script, because the bash script is still avail
 ## Usage
 
 ```bash
-./dyndnsupdate.py --dyn-server https://www.api.com --dyn-hostname hostname.domain.com -u login -p pass ```
+./dyndnsupdate.py --dyn-server https://www.api.com --dyn-hostname hostname.domain.com -u login -p pass
+```
 
 Please use the --help statement on each script to learn how to use them
 
