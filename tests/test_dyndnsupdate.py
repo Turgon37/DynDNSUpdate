@@ -7,7 +7,7 @@ import shutil
 import socket
 import ssl
 import subprocess
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, call
 
 from .mocks.connexionmock import createHTTPConnectionMock, createHTTPSConnectionMock
 
@@ -27,7 +27,8 @@ def test_with_valid_settings():
     shutil.rmtree('tmp', ignore_errors=True)
 
     program = dyndnsupdate.DynDNSUpdate()
-    assert program.configure(dyndns_myip='1.1.1.1', server_url='www.api.com:81/', dyndns_hostname=['mydyndnshostname.com']) == True
+    assert program.configure(dyndns_myip='1.1.1.1', server_url='www.api.com:81/',
+                                dyndns_hostname=['mydyndnshostname.com']) == True
     assert program.main() == 0
 
     program = dyndnsupdate.DynDNSUpdate()
@@ -50,3 +51,18 @@ def test_with_missing_settings():
     program = dyndnsupdate.DynDNSUpdate()
     assert program.configure(server_url='http://lmdaz') == True
     assert program.main() == 3
+
+@patch('http.client.HTTPConnection', createHTTPConnectionMock())
+def test_with_http_auth():
+    """Must produce an error is bad urls were given"""
+    shutil.rmtree('tmp', ignore_errors=True)
+
+    program = dyndnsupdate.DynDNSUpdate()
+    assert program.configure(dyndns_myip='1.1.1.1',
+                            server_url='http://www.api.com/',
+                            dyndns_hostname=['mydyndnshostname.com'],
+                            server_username='user', server_password='pass') == True
+    assert program.main() == 0
+    c1 = call().request('GET',
+    'http://www.api.com/nic/update?system=dyndns&hostname=mydyndnshostname.com&myip=1.1.1.1&wildcard=NOCHG&mx=&backmx=NOCHG&offline=NOCHG&url=', headers={'User-Agent': 'dyndns-update/'+dyndnsupdate.__version__, 'Authorization': 'Basic dXNlcjpwYXNz'})
+    http.client.HTTPConnection.assert_has_calls([c1])
