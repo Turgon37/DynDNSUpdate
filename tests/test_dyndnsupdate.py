@@ -62,7 +62,7 @@ def test_with_http_auth():
                             server_username='user', server_password='pass') == True
     assert program.main() == 0
     c1 = call().request('GET',
-    'http://www.api.com/nic/update?system=dyndns&hostname=mydyndnshostname.com&myip=1.1.1.1&wildcard=NOCHG&mx=&backmx=NOCHG&offline=NOCHG&url=', headers={'User-Agent': 'dyndns-update/'+dyndnsupdate.__version__, 'Authorization': 'Basic dXNlcjpwYXNz'})
+    'http://www.api.com/nic/update?backmx=NOCHG&hostname=mydyndnshostname.com&mx=&myip=1.1.1.1&offline=NOCHG&system=dyndns&url=&wildcard=NOCHG', headers={'User-Agent': 'dyndns-update/'+dyndnsupdate.__version__, 'Authorization': 'Basic dXNlcjpwYXNz'})
     http.client.HTTPConnection.assert_has_calls([c1])
 
 @patch('http.client.HTTPSConnection', createHTTPSConnectionMock('0.0.0.0'))

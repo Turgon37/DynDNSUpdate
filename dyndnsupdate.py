@@ -286,9 +286,10 @@ class DynDNSUpdate(object):
         # /HEADER
 
         # URL
+        dyndns_params = urllib.parse.urlencode(sorted(self.__fields.items()))
         url = '{base_url}{api_path}?{params}'.format(base_url=url_parts['url'].rstrip('/'),
                                                     api_path=self.__server_api_url,
-                                                    params=urllib.parse.urlencode(self.__fields))
+                                                    params=dyndns_params)
         self.__logger.debug('set final url to "%s"', url)
         # /URL
 
