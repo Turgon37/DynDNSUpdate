@@ -205,6 +205,7 @@ class DynDNSUpdate(object):
             else:
                 self.__logger.error('Incorrect value for dyndns_wildcard option')
                 return False
+        return True
 
               #
               # if opt[0] == '--backmx':
@@ -392,7 +393,8 @@ Use DYNDNS protocol to update a dynhost with a new ip address""")
         sys.exit(0)
 
     program = DynDNSUpdate()
-    program.configure(**vars(args))
+    if not program.configure(**vars(args)):
+        sys.exit(2)
     sys.exit(program.main())
 
 # Return code :
