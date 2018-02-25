@@ -38,17 +38,11 @@ import socket
 import sys
 import urllib
 
-# python 3
-if sys.version_info[0] == 3:
-    string_types = str,
-else:
-    string_types = basestring,
-
 # Global project declarations
 __version__ = '2.0.0'
 
 
-class DynDNSUpdate:
+class DynDNSUpdate(object):
     """An instance of a dyn client
 
     This class represent a instance of a dyn dns client until it make
@@ -204,6 +198,14 @@ class DynDNSUpdate:
                 hostnames = ','.join(hostnames)
             self.__fields['hostname'] = hostnames
 
+        if 'dyndns_wildcard' in options and options['dyndns_wildcard']:
+            if options['dyndns_wildcard'] in ['ON', 'OFF', 'NOCHG']:
+                self.__logger.warning('Deprecated: Flag wildcard can be currently ignored')
+                self.__fields['wildcard'] = options['dyndns_wildcard']
+            else:
+                self.__logger.error('Incorrect value for dyndns_wildcard option')
+                return False
+
               #
               # if opt[0] == '--backmx':
               #   self.__fields['backmx'] = 'YES'
@@ -213,24 +215,22 @@ class DynDNSUpdate:
               #   self.__fields['offline'] = 'YES'
               # if opt[0] == '--static':
               #   self.__fields['system'] = 'statdns'
-              # if opt[0] == '--wildcard':
-              #   self.__fields['wildcard'] = 'YES'
-              # if opt[0] == '--no-wildcard':
-              #   self.__fields['wildcard'] = 'NO'
               # if opt[0] == '--url':
               #   self.__fields['url'] = opt[1]
 
     def main(self):
         """Entry point of the program
         """
-        for val in [self.__server_url,
-                    self.__fields['myip'],
-                    self.__fields['hostname']]:
-            if not val:
-                self.__logger.error('Missing a required argument use --help')
+        if not self.__server_url:
+            self.__logger.error('Missing required setting "server_url" in configure()')
+            return 3
+        for required_field in ['myip', 'hostname']:
+            if not self.__fields[required_field]:
+                self.__logger.error('Missing required setting "%s" in configure()', required_field)
                 return 3
+
         self.__logger.debug('debug: config fields ' + str(self.__fields))
-        return self.__query()
+        return int(not self.__query())
 
     def __query(self):
         """Forge and send the HTTP GET query
@@ -284,7 +284,7 @@ class DynDNSUpdate:
         # /HEADER
 
         # URL
-        url = '{base_url}{api_path}?{params}'.format(base_url=url_parts['url'],
+        url = '{base_url}{api_path}?{params}'.format(base_url=url_parts['url'].rstrip('/'),
                                                     api_path=self.__server_api_url,
                                                     params=urllib.parse.urlencode(self.__fields))
         self.__logger.debug('set final url to "%s"', url)
